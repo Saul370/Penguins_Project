@@ -1,0 +1,254 @@
+---
+title: "homework_assignment"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-12-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# This code is loading the necessary packages for the code I will run. lsmeans is needed for my statistical analysis
+install.packages("ggplot2")
+install.packages("janitor")
+install.packages("palmerpenguins")
+install.packages("dplyr")
+install.packages("lsmeans")
+install_tinytex()
+```
+# installing the necessary data
+```{r loading}
+library(ggplot2)
+library(palmerpenguins)
+library(dplyr)
+library(janitor)
+library(lsmeans)
+library(tinytex)
+```
+---
+title: "Homework Template"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-10-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*The following is a template .rmd RMarkdown file for you to use for your homework submission.*
+
+*Please Knit your .rmd to a PDF format or HTML and submit that with no identifiers like your name.*
+
+*To create a PDF, first install tinytex and load the package. Then press the Knit arrow and select "Knit to PDF".*
+
+## QUESTION 01: Data Visualisation for Science Communication
+
+*Create a figure using the Palmer Penguin dataset that is correct but badly communicates the data. **Do not make a boxplot**.*
+
+*Use the following references to guide you:*
+
+-   [*https://www.nature.com/articles/533452a*](https://www.nature.com/articles/533452a){.uri}
+-   [*https://elifesciences.org/articles/16800*](https://elifesciences.org/articles/16800){.uri}
+
+*Note: Focus on visual elements rather than writing misleading text on it.*
+
+### a) Provide your figure here:
+
+```{r bad figure code, echo=FALSE}
+
+# There is no need to provide the code for your bad figure, just use echo=FALSE so the code is hidden. Make sure your figure is visible after you knit it. 
+
+```
+
+### b) Write about how your design choices mislead the reader about the underlying data (200-300 words).
+
+*Include references.*
+
+------------------------------------------------------------------------
+
+## QUESTION 2: Data Pipeline
+
+*Write a data analysis pipeline in your .rmd RMarkdown file. You should be aiming to write a clear explanation of the steps, the figures visible, as well as clear code.*
+
+*Your code should include the steps practiced in the lab session:*
+
+-   *Load the data*
+
+-   *Appropriately clean the data*
+
+-   *Create an Exploratory Figure (**not a boxplot**)*
+
+-   *Save the figure*
+
+-   ***New**: Run a statistical test*
+
+-   ***New**: Create a Results Figure*
+
+-   *Save the figure*
+
+*An exploratory figure shows raw data, such as the distribution of the data. A results figure demonstrates the stats method chosen, and includes the results of the stats test.*
+
+*Between your code, communicate clearly what you are doing and why.*
+
+*Your text should include:*
+
+-   *Introduction*
+
+-   *Hypothesis*
+
+-   *Stats Method*
+
+-   *Results*
+
+-   *Discussion*
+
+-   *Conclusion*
+
+*You will be marked on the following:*
+
+### a) Your code for readability and functionality
+
+### b) Your figures for communication
+
+### c) Your text communication of your analysis
+
+*Below is a template you can use.*
+
+------------------------------------------------------------------------
+
+### Introduction
+# This plot will examine the relationship between flipper length and mass of the penguins
+
+
+```{r Data Exploration}
+
+# Make sure your code prints. 
+
+```
+
+
+
+```{r}
+# This code runs a set of function that clean data from my cleaning.r file. This means that I can repeatedly call on these functions instead of having to write them out mutliple times 
+source("functions/cleaning.r")
+source("functions/plot.r")
+# Here the function clean_column_names is removing caps and spaces from the headings of my data set so that my data is easier to manipulate
+names(penguins_raw)
+penguins_clean <- clean_column_names(penguins_raw)
+names(penguins_clean)
+
+```
+
+``` {r}
+# This function shortens the names of the different species 
+head(penguins_clean["species"])
+
+penguins_clean_species <- shorten_species(penguins_clean)
+
+head(penguins_clean_species["species"])
+```
+
+```{r}
+# Here we are removing the empty rows from the code
+penguins_plot <- remove_empty_columns_rows(penguins_clean_species)
+head(penguins_plot)
+
+```
+
+
+
+```{r}
+# This code removes all data not relevant to the plot
+
+columns <- c("species","body_mass_g","flipper_length_mm")
+penguins_plot <- subset_columns(penguins_plot,columns)
+head(penguins_plot)
+penguins_plot
+
+```
+
+
+
+```{r}
+# This code plots the data subset onto a scatter graph 
+# Here I have plotted body mass against flipper length and differentiated each colour by the species
+# To make the graph more readable I have made the scatter points smaller and I have drawn regression lines to help visualise the data 
+
+mass_data <- ggplot(data <- penguins_plot, aes(x = body_mass_g, y = flipper_length_mm),color = species,) + geom_point(size = 0.5,data = penguins_plot, aes(x = body_mass_g, y = flipper_length_mm, color = species)) + geom_smooth(linewidth = 0.5,method = lm, fill = NA, fullrange = TRUE, data = penguins_plot, aes(x = body_mass_g, y = flipper_length_mm, color = species)) + scale_size_manual(values = c(1,1,1),aes(x = body_mass_g, y = flipper_length_mm, color = species))
+mass_data
+
+
+
+```
+
+
+### Hypothesis
+# The null hypothesis is that penguins have the same flipper size relative to mass between regions. The alternative hypothesis is that flipper size is different compared to regions.
+
+### Statistical Methods
+
+```{r Statistics}
+
+# Now that I have my exploratory figure. I will be statistically testing whether the slopes represented by the regression lines in the diagram are significantly different from each other. This will tell me whether different penguin species have different flipper lengths relative to their size. In this investigation I am using body mass as a proxy for the size fo the penguins
+
+
+
+# First I create a model that considers flipper length agasint body mass and the categorical variable species, hence body_mass_g*species
+model2 <- lm(flipper_length_mm ~ body_mass_g*species ,data = penguins_plot)
+anova(model2) 
+# Using this model I compared the regression lines of the different groups 
+penguin_slopes <-lstrends(model2,"species",var="body_mass_g")
+pairs(penguin_slopes)
+plot(penguin_slopes)
+# Make sure your code prints. 
+
+```
+
+### Results & Discussion
+
+```{r Plotting Results}
+
+# Make sure your code prints. 
+penguin_slopes <-lstrends(model2,"species",var="body_mass_g")
+pairs(penguin_slopes)
+plot(penguin_slopes)
+
+```
+
+### Conclusion
+
+------------------------------------------------------------------------
+
+## QUESTION 3: Open Science
+
+### a) GitHub
+
+*Upload your RProject you created for **Question 2** and any files and subfolders used to GitHub. Do not include any identifiers such as your name. Make sure your GitHub repo is public.*
+
+*GitHub link:*
+
+*You will be marked on your repo organisation and readability.*
+
+### b) Share your repo with a partner, download, and try to run their data pipeline.
+
+*Partner's GitHub link:*
+
+*You **must** provide this so I can verify there is no plagiarism between you and your partner.*
+
+### c) Reflect on your experience running their code. (300-500 words)
+
+-   *What elements of your partner's code helped you to understand their data pipeline?*
+
+-   *Did it run? Did you need to fix anything?*
+
+-   *What suggestions would you make for improving their code to make it more understandable or reproducible, and why?*
+
+-   *If you needed to alter your partner's figure using their code, do you think that would be easy or difficult, and why?*
+
+### d) Reflect on your own code based on your experience with your partner's code and their review of yours. (300-500 words)
+
+-   *What improvements did they suggest, and do you agree?*
+
+-   *What did you learn about writing code for other people?*
