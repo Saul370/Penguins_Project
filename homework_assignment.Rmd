@@ -135,7 +135,17 @@ pairs(penguin_slopes)
 plot(penguin_slopes)
 
 ```
+```{r}
+# This code allows me to convert my data into an image
+# Issues arised when attempting to convert my statistical output into a figure
+agg_png()
+agg_png("figures/mass_data", 
+        width = 500, height = 500, units = "px")
+mass_data
+dev.off()
 
+{}
+```
 ### Conclusion
 
 # According to the results. Chinstrap and Adelie differ from each other in a statistically significant way.
