@@ -129,7 +129,7 @@ plot(penguin_slopes)
 
 ```{r Plotting Results}
 
-# Make sure your code prints. 
+
 penguin_slopes <-lstrends(model2,"species",var="body_mass_g")
 pairs(penguin_slopes)
 plot(penguin_slopes)
